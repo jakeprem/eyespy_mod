@@ -69,25 +69,20 @@ namespace EyeSpy
                                 var currentColonistHash = _colonistHashes[newColonist.ID];                                
                                 if (currentColonistHash != newColonistHash)
                                 {
-                                    SendPacket(newColonistHash + " : " + newColonist.Name + " : " + newColonist.CurrentJob);
-
                                     colonistsToSend.Add(newColonist);
                                     _colonistHashes[newColonist.ID] = newColonistHash;                                                                                                            
                                 }
-
-
                             } else
                             {
-                                SendPacket("New colonist: " + newColonistHash + " : " + newColonist.Name + " : " + newColonist.CurrentJob);
-
                                 _colonistHashes[newColonist.ID] = newColonistHash;
                                 colonistsToSend.Add(newColonist);
                             }
                         }
-                    }                    
-                    
-                    //string json = JsonConvert.SerializeObject(colonistsToSend, Formatting.Indented);                    
-                    //string json = JsonHelper.ToJson(colonistsToSend.ToArray());                    
+                    }                      
+                    if (colonistsToSend.Count > 0)
+                    {
+                        SendPacket(ListToJson(colonistsToSend));
+                    }          
 
                 }
                 catch (Exception ex)
@@ -104,13 +99,39 @@ namespace EyeSpy
             client.Send(data, data.Length, remoteEndPoint);
         }
 
-        // Works but not serializing currently
-        [Serializable]
+        // Works but not serializing currently        
         private class ColonistData
         {
             public string ID { get; set; }
             public string Name { get; set; }
             public string CurrentJob { get; set; }
+
+            public string ToJson()
+            {
+                return @"{ ""id"": """ + this.ID + @""", ""name"": """ + this.Name + @""", ""job"": """ + this.CurrentJob + @"""}";
+            }
+        }
+
+        // This is an ugly hack but I don't feel like fighting JSON libraries before I start on the frontend code
+        private string ListToJson(ICollection<ColonistData> colonistList)
+        {
+            var count = colonistList.Count;
+            var jsonString = @"{ ""colonists"": [";
+            foreach (var colonist in colonistList)
+            {
+                if (--count > 0)
+                {
+                    jsonString = jsonString + colonist.ToJson() + ", ";
+                }
+                else
+                {
+                    jsonString = jsonString + colonist.ToJson();
+                }
+            }
+            jsonString = jsonString + @"]}";
+
+            return jsonString;
+
         }
 
         // Works
