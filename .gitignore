@@ -1,0 +1,7 @@
+.vs
+*.userprefs
+bin
+obj
+dist
+Libraries/*
+!Libraries/README.md
